@@ -73,7 +73,7 @@ public class InventoryManager {
         return true;
     }
 
-    // Search product by barcode/id
+    // Search product by id
     public Product searchById(String id) {
         return inventory.get(id);
     }
@@ -102,5 +102,60 @@ public class InventoryManager {
     // Get all products
     public HashMap<String, Product> getInventory() {
         return inventory;
+    }
+
+    // Export to CSV
+    public boolean exportToCSV(String filename) {
+        try {
+            java.io.FileWriter writer =
+                    new java.io.FileWriter(filename);
+            writer.write("ID,Name,Quantity,Price,TotalValue\n");
+            for (Product p : inventory.values()) {
+                writer.write(p.getId() + "," +
+                        p.getName() + "," +
+                        p.getQuantity() + "," +
+                        p.getPrice() + "," +
+                        p.getTotalValue() + "\n");
+            }
+            writer.close();
+            System.out.println("✅ Exported to " + filename);
+            return true;
+        } catch (Exception e) {
+            System.out.println("❌ Export failed: "
+                    + e.getMessage());
+            return false;
+        }
+    }
+
+    // Import from CSV
+    public int importFromCSV(String filename) {
+        int count = 0;
+        try {
+            java.io.BufferedReader reader =
+                    new java.io.BufferedReader(
+                            new java.io.FileReader(filename));
+            String line;
+            reader.readLine(); // skip header
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 5) {
+                    String id = parts[0].trim();
+                    String name = parts[1].trim();
+                    int qty = Integer.parseInt(parts[2].trim());
+                    BigDecimal price =
+                            new BigDecimal(parts[3].trim());
+                    boolean added = addProduct(
+                            id, name, qty, price);
+                    if (added) count++;
+                }
+            }
+            reader.close();
+            System.out.println("✅ Imported " + count
+                    + " products!");
+        } catch (Exception e) {
+            System.out.println("❌ Import failed: "
+                    + e.getMessage());
+        }
+        return count;
     }
 }

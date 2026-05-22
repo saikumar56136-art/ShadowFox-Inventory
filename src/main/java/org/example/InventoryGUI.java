@@ -128,6 +128,8 @@ public class InventoryGUI extends JFrame {
         JButton updateBtn = new JButton("Update");
         JButton deleteBtn = new JButton("Delete");
         JButton clearBtn = new JButton("Clear");
+        JButton exportBtn = new JButton("📤 Export CSV");
+        JButton importBtn = new JButton("📥 Import CSV");
 
         addBtn.setBackground(Color.decode("#4CAF50"));
         addBtn.setForeground(Color.WHITE);
@@ -137,17 +139,25 @@ public class InventoryGUI extends JFrame {
         deleteBtn.setForeground(Color.WHITE);
         clearBtn.setBackground(Color.decode("#9E9E9E"));
         clearBtn.setForeground(Color.WHITE);
+        exportBtn.setBackground(Color.decode("#009688"));
+        exportBtn.setForeground(Color.WHITE);
+        importBtn.setBackground(Color.decode("#FF5722"));
+        importBtn.setForeground(Color.WHITE);
 
         addBtn.addActionListener(e -> addProduct());
         updateBtn.addActionListener(e -> updateProduct());
         deleteBtn.addActionListener(e -> deleteProduct());
         clearBtn.addActionListener(e -> clearFields());
+        exportBtn.addActionListener(e -> exportCSV());
+        importBtn.addActionListener(e -> importCSV());
 
         JPanel btnPanel = new JPanel();
         btnPanel.add(addBtn);
         btnPanel.add(updateBtn);
         btnPanel.add(deleteBtn);
         btnPanel.add(clearBtn);
+        btnPanel.add(exportBtn);
+        btnPanel.add(importBtn);
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(formPanel, BorderLayout.CENTER);
@@ -239,6 +249,43 @@ public class InventoryGUI extends JFrame {
             tableModel.removeRow(row);
             updateTotalValue();
             clearFields();
+        }
+    }
+
+    private void exportCSV() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setSelectedFile(
+                new java.io.File("inventory.csv"));
+        int result = fileChooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            String filename = fileChooser
+                    .getSelectedFile().getAbsolutePath();
+            boolean exported = manager.exportToCSV(filename);
+            if (exported) {
+                JOptionPane.showMessageDialog(this,
+                        "✅ Inventory exported to:\n" + filename);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "❌ Export failed!");
+            }
+        }
+    }
+
+    private void importCSV() {
+        JFileChooser fileChooser = new JFileChooser();
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            String filename = fileChooser
+                    .getSelectedFile().getAbsolutePath();
+            int count = manager.importFromCSV(filename);
+            if (count > 0) {
+                refreshTable();
+                JOptionPane.showMessageDialog(this,
+                        "✅ Imported " + count + " products!");
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "❌ No products imported!");
+            }
         }
     }
 
